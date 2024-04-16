@@ -1,0 +1,4 @@
+[wrap-git]
+url = https://github.com/ARM-software/CMSIS_6.git
+revision = 1da2c5d27af1f93b2a047ad3db5e563dd83f31ec
+patch_directory = arm_cmsis_6

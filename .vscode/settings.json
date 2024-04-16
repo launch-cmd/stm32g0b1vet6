@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "stm32g0b1xx.h": "c",
+        "gpio.h": "c",
+        "systick.h": "c",
+        "startup.h": "c",
+        "core_cm0plus.h": "c",
+        "task.h": "c",
+        "freertos.h": "c",
+        "inttypes.h": "c",
+        "stdbool.h": "c"
+    },
+    "C_Cpp.default.compileCommands": "/home/matthijs/mesonm0/target/compile_commands.json",
+    "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
+    "cmake.configureOnOpen": false
+}

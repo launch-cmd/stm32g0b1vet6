@@ -1,0 +1,4 @@
+[wrap-git]
+url = https://github.com/STMicroelectronics/cmsis_device_g0.git
+revision = 35e1201d4db3dbbd364b7decca957902f60bc5da
+patch_directory = st_g0_cmsis

@@ -1,1 +1,4 @@
 target
+subprojects/*/
+!subprojects/packagefiles
+toolchain/**

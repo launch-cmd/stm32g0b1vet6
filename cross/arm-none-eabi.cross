@@ -1,0 +1,19 @@
+#see: https://mesonbuild.com/Cross-compilation.html#cross-compilation
+
+[constants]
+toolchain = '@GLOBAL_SOURCE_ROOT@' / 'toolchain/arm-gnu-toolchain-13.2.Rel1-x86_64-arm-none-eabi/bin/'
+
+[binaries]
+c   	= toolchain / 'arm-none-eabi-gcc'
+ar  	= toolchain / 'arm-none-eabi-ar'
+as  	= toolchain / 'arm-none-eabi-as'
+strip 	= toolchain / 'arm-none-eabi-strip'
+objcopy = toolchain / 'arm-none-eabi-objcopy'
+objdump = toolchain / 'arm-none-eabi-objdump'
+size 	= toolchain / 'arm-none-eabi-size'
+
+[host_machine]
+system = 'bare-metal'
+cpu_family = 'arm'
+cpu = 'armv6-m'
+endian = 'little'

@@ -1,0 +1,2 @@
+startup_inc = include_directories('include')
+startup_src = files('src/startup.c')
