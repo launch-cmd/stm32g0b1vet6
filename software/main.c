@@ -4,6 +4,7 @@
 #include "gpio.h"
 #include "task.h"
 #include "board_config.h"
+#include <stdio.h>
 
 /* Dimensions of the buffer that the task being created will use as its stack.
 NOTE:  This is the number of words the stack will hold, not the number of
@@ -18,6 +19,11 @@ StaticTask_t xTaskBuffer;
 an array of StackType_t variables.  The size of StackType_t is dependent on
 the RTOS port. */
 StackType_t xStack[STACK_SIZE];
+
+#define LOG_ERROR(f_, ...) printf(("\x1b[31m" "ERROR: " f_ "\r\n"), ##__VA_ARGS__)
+#define LOG_WARN(f_, ...) printf(("\x1b[33m" "WARN: " f_ "\r\n"), ##__VA_ARGS__)
+#define LOG_INFO(f_, ...) printf(("\x1b[37m" "INFO: " f_ "\r\n"), ##__VA_ARGS__)
+#define LOG_DEBUG(f_, ...) printf(("\x1b[32m" "DEBUG: " f_ "\r\n"), ##__VA_ARGS__)
 
 void clocksInit()
 {
@@ -88,6 +94,7 @@ void uartWriteByte(char b)
 void uartWriteLine(const char *bytes)
 {
   int charCounter = 0;
+
   while (bytes[charCounter] != '\0')
   {
     uartWriteByte(bytes[charCounter]);
@@ -100,18 +107,26 @@ void uartWriteLine(const char *bytes)
 /* Function that implements the task being created. */
 void vTaskBlinkLed(void *pvParameters)
 {
-  uartEnable();
-  uartWriteLine("Starting vTaskBlinkLed!");
+  LOG_INFO("Starting vTaskBlinkLed.");
   uint16_t led = PIN('F', 13);        // Blue LED
   gpioSetMode(led, GPIO_MODE_OUTPUT); // Set blue LED to output mode
   gpioWrite(led, true);               // active low
 
   bool statusLedIsOn = false;
+  uint32_t counter = 0;
+  double counter1 = 1.23456789;
   for (;;)
   {
     gpioWrite(led, statusLedIsOn);
     statusLedIsOn = !statusLedIsOn;
-    uartWriteLine(statusLedIsOn ? "On" : "Off");
+
+    LOG_DEBUG("counting: %ld  %lf.", counter, counter1);
+    LOG_INFO("counting: %ld  %lf.", counter, counter1);
+    LOG_WARN("counting: %ld  %lf.", counter, counter1);
+    LOG_ERROR("counting: %ld  %lf.", counter, counter1);
+
+    counter++;
+    counter1++;
     vTaskDelay(1000 / portTICK_PERIOD_MS);
   }
 }
@@ -120,8 +135,10 @@ void main(void)
 {
   clocksInit();
   uartInit();
+  uartEnable();
+
+  LOG_INFO("Starting main.");
   xTaskCreateStatic(vTaskBlinkLed, "LedTask", STACK_SIZE,
                     NULL, tskIDLE_PRIORITY + 1, xStack, &xTaskBuffer);
-
   vTaskStartScheduler();
 }
