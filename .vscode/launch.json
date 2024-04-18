@@ -11,14 +11,14 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "executable": "target/m0plus.elf",
-            "servertype": "external",
-            "gdbTarget": "127.0.0.1:1234",
+            "servertype": "pyocd",
+            "targetId": "STM32G0B1VETx",
+            "interface": "swd",
             "armToolchainPath": "${workspaceFolder}/toolchain/arm-gnu-toolchain-13.2.Rel1-x86_64-arm-none-eabi/bin",
             "showDevDebugOutput": "vscode",
             "runToEntryPoint": "main",
             "device": "STM32G0B1",
-            "svdFile": "${workspaceFolder}/.vscode/STM32G0B1.svd",
-            "interface": "swd"
+            "svdFile": "${workspaceFolder}/.vscode/STM32G0B1.svd"
         }
     ]
 }
