@@ -5,6 +5,7 @@
 #include "task.h"
 #include "board_config.h"
 #include <stdio.h>
+#include "FreeRTOS_IP.h"
 
 /* Dimensions of the buffer that the task being created will use as its stack.
 NOTE:  This is the number of words the stack will hold, not the number of
@@ -166,13 +167,30 @@ void vTaskBlinkLed(void *pvParameters)
   }
 }
 
+static const uint8_t ucIPAddress[4] = {192, 168, 1, 250};
+static const uint8_t ucNetMask[4] = {255, 255, 255, 0};
+static const uint8_t ucGatewayAddress[4] = {192, 168, 1, 1};
+
+/* The following is the address of an OpenDNS server. */
+static const uint8_t ucDNSServerAddress[4] = {208, 67, 222, 222};
+
+/* The MAC address array is not declared const as the MAC address will normally
+be read from an EEPROM and not hard coded (in real deployed applications).*/
+static uint8_t ucMACAddress[6] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
+
 void main(void)
 {
   clocksInit();
   uartInit();
   uartEnable();
-
   LOG_INFO("Starting main.");
+
+  /* Initialise the TCP/IP stack. */
+  FreeRTOS_IPInit(ucIPAddress,
+                  ucNetMask,
+                  ucGatewayAddress,
+                  ucDNSServerAddress,
+                  ucMACAddress);
   xTaskCreateStatic(vTaskBlinkLed, "LedTask", STACK_SIZE,
                     NULL, tskIDLE_PRIORITY + 1, xStack, &xTaskBuffer);
   vTaskStartScheduler();

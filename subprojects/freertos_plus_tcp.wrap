@@ -1,0 +1,4 @@
+[wrap-git]
+url = https://github.com/FreeRTOS/FreeRTOS-Plus-TCP.git
+revision = 0bf460c935ca59cf0423ef0ac3505f13961c2e9e
+patch_directory = freertos_plus_tcp

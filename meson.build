@@ -61,6 +61,11 @@ freertos_inc = freertos_proj.get_variable('freertos_inc')
 freertos_src = freertos_proj.get_variable('freertos_src')
 freertos_dep = declare_dependency(sources: [freertos_src], include_directories: [freertos_inc])
 
+freertos_plus_tcp_proj = subproject('freertos_plus_tcp')
+freertos_plus_tcp_inc = freertos_plus_tcp_proj.get_variable('freertos_plus_tcp_inc')
+freertos_plus_tcp_src = freertos_plus_tcp_proj.get_variable('freertos__plus_tcp_src')
+freertos_plus_tcp_dep = declare_dependency(sources: [freertos_plus_tcp_src], include_directories: [freertos_plus_tcp_inc])
+
 # Internal dependencies
 subdir('software')
 
@@ -68,6 +73,7 @@ executable('m0plus.elf', 'software/main.c',
 	dependencies: [
 		arm_cmsis_6_dep, 
 		st_g0_cmsis_dep, 
-		freertos_dep, 
+		freertos_dep,
+		freertos_plus_tcp_dep, 
 		internal_deps
 ])

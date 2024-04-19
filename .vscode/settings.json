@@ -8,7 +8,8 @@
         "task.h": "c",
         "freertos.h": "c",
         "inttypes.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "freertos_sockets.h": "c"
     },
     "C_Cpp.default.compileCommands": "/home/matthijs/mesonm0/target/compile_commands.json",
     "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
