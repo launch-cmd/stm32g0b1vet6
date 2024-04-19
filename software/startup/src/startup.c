@@ -1,5 +1,21 @@
 #include <FreeRTOS.h>
 #include "task.h"
+#include "board_config.h"
+
+// Initialize the clocks to their default values.
+// This function should be called before main() is entered.
+static void clocksInit()
+{
+  RCC->APBENR2 |= RCC_APBENR2_SYSCFGEN; // enable SYSCFG, COMP and VREFBUF clock
+  RCC->APBENR1 |= RCC_APBENR1_PWREN;    // enable power interface clock
+  RCC->APBENR1 |= RCC_APBENR1_DBGEN;    // enable debug support clock
+
+  RCC->CR |= RCC_CR_HSION; // enable HSI
+  while (!(RCC->CR & RCC_CR_HSION))
+  {
+    // wait for HSI to be ready
+  }
+}
 
 // reset hook
 __attribute__((naked, noreturn)) void Reset_Handler(void)
@@ -7,31 +23,18 @@ __attribute__((naked, noreturn)) void Reset_Handler(void)
   // memset .bss to zero, and copy .data section to RAM region
   extern long _sbss, _ebss, _sdata, _edata, _sidata;
   for (long *dst = &_sbss; dst < &_ebss; dst++)
+  {
     *dst = 0;
+  }
   for (long *dst = &_sdata, *src = &_sidata; dst < &_edata;)
+  {
     *dst++ = *src++;
+  }
+  clocksInit();
   extern void main(void);
   main(); // Call main()
   for (;;)
     (void)0; // Infinite loop in the case if main() returns
-}
-
-// overflow hook
-void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
-{
-  while (1)
-  {
-    vTaskDelay(1);
-  }
-}
-
-// hardfault hook
-void HardFault_Handler(void)
-{
-  while (1)
-  {
-    vTaskDelay(1);
-  }
 }
 
 // easy way to force a bus fault (hard fault)
