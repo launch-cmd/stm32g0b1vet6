@@ -83,6 +83,8 @@
  * calculated from the configCPU_CLOCK_HZ value. */
 #define configTICK_RATE_HZ                         100
 
+#define configUSE_16_BIT_TICKS 0 /* use 32 bit ticks*/
+
 #define configSYSTICK_USE_CORE_CLOCK 1
 /* Set configUSE_PREEMPTION to 1 to use pre-emptive scheduling.  Set
  * configUSE_PREEMPTION to 0 to use co-operative scheduling.
@@ -236,6 +238,7 @@
  * task.  See https://www.freertos.org/RTOS-software-timer-service-daemon-task.html
  * Only used if configUSE_TIMERS is set to 1. */
 #define configTIMER_TASK_STACK_DEPTH    configMINIMAL_STACK_SIZE
+
 
 /* configTIMER_QUEUE_LENGTH sets the length of the queue (the number of discrete
  * items the queue can hold) used to send commands to the timer task.  See

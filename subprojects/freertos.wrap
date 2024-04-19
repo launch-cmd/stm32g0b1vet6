@@ -1,4 +1,4 @@
 [wrap-git]
 url = https://github.com/FreeRTOS/FreeRTOS-Kernel.git
-revision = 0240cd55f20be7100439b606086709b74a105cb1
+revision = def7d2df2b0506d3d249334974f51e427c17a41c
 patch_directory = freertos
