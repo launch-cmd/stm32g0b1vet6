@@ -20,10 +20,18 @@ an array of StackType_t variables.  The size of StackType_t is dependent on
 the RTOS port. */
 StackType_t xStack[STACK_SIZE];
 
-#define LOG_ERROR(f_, ...) printf(("\x1b[31m" "ERROR: " f_ "\r\n"), ##__VA_ARGS__)
-#define LOG_WARN(f_, ...) printf(("\x1b[33m" "WARN: " f_ "\r\n"), ##__VA_ARGS__)
-#define LOG_INFO(f_, ...) printf(("\x1b[37m" "INFO: " f_ "\r\n"), ##__VA_ARGS__)
-#define LOG_DEBUG(f_, ...) printf(("\x1b[32m" "DEBUG: " f_ "\r\n"), ##__VA_ARGS__)
+#define LOG_ERROR(f_, ...) printf(("\x1b[31m"            \
+                                   "ERROR: " f_ "\r\n"), \
+                                  ##__VA_ARGS__)
+#define LOG_WARN(f_, ...) printf(("\x1b[33m"           \
+                                  "WARN: " f_ "\r\n"), \
+                                 ##__VA_ARGS__)
+#define LOG_INFO(f_, ...) printf(("\x1b[37m"           \
+                                  "INFO: " f_ "\r\n"), \
+                                 ##__VA_ARGS__)
+#define LOG_DEBUG(f_, ...) printf(("\x1b[32m"            \
+                                   "DEBUG: " f_ "\r\n"), \
+                                  ##__VA_ARGS__)
 
 void clocksInit()
 {
@@ -66,10 +74,15 @@ void uartInit()
   RCC->CCIPR &= ~RCC_CCIPR_LPUART1SEL_1;
   RCC->APBENR1 |= RCC_APBENR1_LPUART1EN; // enable LPUART1 clock
   LPUART1->CR1 &= ~USART_CR1_UE;         // disable LPUART1 to be able to change settings
-  // SET USART_CR1_M to ‘00’: 1 Start bit, 8 Data bits, n Stop bit
+  // SET USART_CR1_M to ‘0b00’: 1 Start bit, 8 Data bits, n Stop bit
   LPUART1->CR1 &= ~USART_CR1_M0;
   LPUART1->CR1 &= ~USART_CR1_M1;
-  LPUART1->BRR = 35556;           // set baud rate to 115200
+  LPUART1->BRR = 35556;             // set baud rate to 115200
+  LPUART1->CR1 |= USART_CR1_FIFOEN; // enable fifo
+  // SET USART_CR3_TXFTCFG to '0b011' to reach 3/4 depth before sending data
+  LPUART1->CR3 |= USART_CR3_TXFTCFG_0;
+  LPUART1->CR3 |= USART_CR3_TXFTCFG_1;
+  LPUART1->CR3 &= ~USART_CR3_TXFTCFG_2;
   LPUART1->CR1 |= USART_CR1_TE;   // enable transmitter
   LPUART1->CR2 |= USART_CR2_SWAP; // swap RX and TX pins
 }
@@ -85,10 +98,10 @@ void uartEnable()
 
 void uartWriteByte(char b)
 {
-  LPUART1->TDR = (uint8_t)b; // write byte
-  while (!(LPUART1->ISR & USART_ISR_TC))
+  while (!(LPUART1->ISR & USART_ISR_TXE_TXFNF)) // wait for FIFO space to be available
   {
   }
+  LPUART1->TDR = (uint8_t)b; // write byte
 }
 
 void uartWriteLine(const char *bytes)
