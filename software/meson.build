@@ -21,3 +21,7 @@ internal_deps = internal_deps + [network_dep]
 subdir('log')
 log_dep = declare_dependency(sources: log_src, include_directories: log_inc)
 internal_deps = internal_deps + [log_dep]
+
+subdir('spi')
+spi_dep = declare_dependency(sources: spi_src, include_directories: spi_inc)
+internal_deps = internal_deps + [spi_dep]
