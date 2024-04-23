@@ -66,6 +66,10 @@ freertos_plus_tcp_inc = freertos_plus_tcp_proj.get_variable('freertos_plus_tcp_i
 freertos_plus_tcp_src = freertos_plus_tcp_proj.get_variable('freertos__plus_tcp_src')
 freertos_plus_tcp_dep = declare_dependency(sources: [freertos_plus_tcp_src], include_directories: [freertos_plus_tcp_inc])
 
+lvgl_proj = subproject('lvgl')
+lvgl_inc = lvgl_proj.get_variable('lvgl_inc')
+lvgl_dep = declare_dependency(sources: [], include_directories: [lvgl_inc])
+
 # Internal dependencies
 subdir('software')
 
@@ -74,6 +78,7 @@ executable('m0plus.elf', 'software/main.c',
 		arm_cmsis_6_dep, 
 		st_g0_cmsis_dep, 
 		freertos_dep,
-		freertos_plus_tcp_dep, 
+		freertos_plus_tcp_dep,
+		lvgl_dep, 
 		internal_deps
 ])
