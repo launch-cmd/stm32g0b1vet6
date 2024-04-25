@@ -71,9 +71,9 @@ void main(void)
   lv_init();
   const uint32_t horRes = 240;
   const uint32_t vertRes = 135;
-  lv_color_t dispBuff[(horRes * vertRes) / 10]; // render in 10 lines
+  lv_color_t dispBuff[(horRes * vertRes)];
   lv_display_t *display = lv_display_create(horRes, vertRes);
-  lv_display_set_buffers(display, dispBuff, NULL, sizeof(dispBuff), LV_DISP_RENDER_MODE_PARTIAL);
+  lv_display_set_buffers(display, dispBuff, NULL, sizeof(dispBuff), LV_DISP_RENDER_MODE_FULL);
 
   LOG_INFO("Starting main.");
 
