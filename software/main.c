@@ -8,6 +8,10 @@
 #include "log.h"
 #include "board_config.h"
 #include "spi.h"
+#include "lv_conf.h"
+
+#define LV_CONF_INCLUDE_SIMPLE
+#include "lvgl.h"
 
 static StaticTask_t mainTaskBuffer;
 static StackType_t mainTaskStack[configMINIMAL_STACK_SIZE * 2];
@@ -61,7 +65,16 @@ void main(void)
 {
   uartInit();
   uartEnable();
+  
+  // init display
   spiInit();
+  lv_init();
+  const uint32_t horRes = 240;
+  const uint32_t vertRes = 135;
+  lv_color_t dispBuff[(horRes * vertRes) / 10]; // render in 10 lines
+  lv_display_t *display = lv_display_create(horRes, vertRes);
+  lv_display_set_buffers(display, dispBuff, NULL, sizeof(dispBuff), LV_DISP_RENDER_MODE_PARTIAL);
+
   LOG_INFO("Starting main.");
 
   /* Initialise the TCP/IP stack. */

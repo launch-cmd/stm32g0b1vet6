@@ -116,7 +116,7 @@ lvgl_inc = include_directories(
         'src/widgets/win',
     ]
 )
-st_g0_cmsis_src = files([
+lvgl_src = files([
     'src/lv_init.c',
     'src/core/lv_group.c',
     'src/core/lv_obj_class.c',

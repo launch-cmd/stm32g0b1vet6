@@ -68,7 +68,8 @@ freertos_plus_tcp_dep = declare_dependency(sources: [freertos_plus_tcp_src], inc
 
 lvgl_proj = subproject('lvgl')
 lvgl_inc = lvgl_proj.get_variable('lvgl_inc')
-lvgl_dep = declare_dependency(sources: [], include_directories: [lvgl_inc])
+lvgl_src = lvgl_proj.get_variable('lvgl_src')
+lvgl_dep = declare_dependency(sources: [lvgl_src], include_directories: [lvgl_inc])
 
 # Internal dependencies
 subdir('software')
