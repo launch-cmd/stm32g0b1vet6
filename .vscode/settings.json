@@ -11,7 +11,7 @@
         "stdbool.h": "c",
         "freertos_sockets.h": "c"
     },
-    "C_Cpp.default.compileCommands": "${workspaceFolder}/target/compile_commands.json",
+    "C_Cpp.default.compileCommands": "/home/matthijs/mesonm0/target/compile_commands.json",
     "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
     "cmake.configureOnOpen": false
 }
