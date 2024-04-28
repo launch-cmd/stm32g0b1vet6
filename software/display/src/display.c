@@ -14,6 +14,9 @@ static StackType_t displayTaskStack[configMINIMAL_STACK_SIZE * 2];
 const uint32_t horRes = 240;
 const uint32_t vertRes = 135;
 #define DISP_BUF_SIZE (32400) // 240 * 135
+#define PART_BUF_SIZE (3240)  // 240 * 135 / 10
+static lv_color_t dispBuff1[PART_BUF_SIZE];
+static lv_color_t dispBuff2[PART_BUF_SIZE];
 
 void displaySelect()
 {
@@ -275,32 +278,33 @@ void clearPattern(uint16_t color)
     displaySendCommand(0x29); // display on
 }
 
+void lvDisplayFlush(lv_display_t *disp, const lv_area_t *area, uint8_t *color_p)
+{
+    uint32_t x, y;
+    for (y = area->y1; y < area->y2; y++)
+    {
+        for (x = area->x1; x < area->x2; x++)
+        {
+            displaySetCursor(x, y, x, y);
+            displaySendData(*color_p);
+        }
+    }
+
+    lv_display_flush_ready(disp);
+}
+
 void displayTask()
 {
     LOG_INFO("Starting displayTask.");
 
-    // lv_color_t dispBuff[DISP_BUF_SIZE];
-
-    // init display
-    // spiInit();
-    // displayPinsInit();
-
-    // GPIOA->ODR &= ~GPIO_ODR_OD3; // select display
-    // displayReset();
-    // displayInit();
-    // displayClear(WHITE);
-    // GPIOA->ODR |= GPIO_ODR_OD3; // deselect display
-
-    // spiInit();
-    // displayPinsInit();
-    // // send dummy byte to sync clocks
-    // spiTranferByte(0x0);
-    // spiWaitForIdle();
-    // vTaskDelay(1);
-
     spiInit();
     displayPinsInit();
     displayInit();
+    lv_init();
+    lv_display_t *display = lv_display_create(horRes, vertRes);
+    lv_display_set_buffers(display, &dispBuff1, dispBuff2, DISP_BUF_SIZE, LV_DISPLAY_RENDER_MODE_PARTIAL);
+    lv_display_set_flush_cb(display, lvDisplayFlush);
+
     vTaskDelay(pdMS_TO_TICKS(1000));
     while (true)
     {
@@ -308,9 +312,21 @@ void displayTask()
         clearPattern(BLACK);
         clearPattern(LIGHTBLUE);
     }
-    // lv_init();
-    // lv_display_t *display = lv_display_create(horRes, vertRes);
-    // lv_display_set_buffers(display, dispBuff, NULL, DISP_BUF_SIZE, LV_DISP_RENDER_MODE_FULL);
+
+
+    // /*Change the active screen's background color*/
+    // lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x003a57), LV_PART_MAIN);
+
+    // /*Create a white label, set its text and align it to the center*/
+    // lv_obj_t *label = lv_label_create(lv_screen_active());
+    // lv_label_set_text(label, "Hello world");
+    // lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0xffffff), LV_PART_MAIN);
+    // lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+    // while (true)
+    // {
+    //     vTaskDelay(pdMS_TO_TICKS(1));
+    //     lv_tick_inc(1);
+    // }
 }
 
 void initDisplayTask()
