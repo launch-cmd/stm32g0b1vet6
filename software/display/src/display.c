@@ -132,6 +132,8 @@ void displayPinsInit()
 
 void displayInit()
 {
+    displayReset();
+
     displaySendCommand(0x36); // memory data access control
     displaySendData(0x70);
 
@@ -223,15 +225,35 @@ void displayWriteDataWord(uint16_t data)
 void displaySetCursor(uint16_t xStart, uint16_t yStart, uint16_t xEnd, uint16_t yEnd)
 {
     displaySendCommand(0x2a);
-    displaySendData(xStart + 40);
-    displaySendData(xEnd + 40);
+    displayWriteDataWord(xStart + 40);
+    displayWriteDataWord(xEnd + 40);
     displaySendCommand(0x2b);
-    displaySendData(yStart + 53);
-    displaySendData(yEnd + 53);
+    displayWriteDataWord(yStart + 53);
+    displayWriteDataWord(yEnd + 53);
     displaySendCommand(0x2c);
 }
 
-#define WHITE (0xFFFF)
+#define WHITE 0xFFFF
+#define BLACK 0x0000
+#define BLUE 0x001F
+#define BRED 0XF81F
+#define GRED 0XFFE0
+#define GBLUE 0X07FF
+#define RED 0xF800
+#define MAGENTA 0xF81F
+#define GREEN 0x07E0
+#define CYAN 0x7FFF
+#define YELLOW 0xFFE0
+#define BROWN 0XBC40
+#define BRRED 0XFC07
+#define GRAY 0X8430
+#define DARKBLUE 0X01CF
+#define LIGHTBLUE 0X7D7C
+#define GRAYBLUE 0X5458
+#define LIGHTGREEN 0X841F
+#define LGRAY 0XC618
+#define LGRAYBLUE 0XA651
+#define LBBLUE 0X2B12
 void displayClear(uint16_t color)
 {
     displaySetCursor(0, 0, (horRes - 1), (vertRes - 1));
@@ -242,6 +264,15 @@ void displayClear(uint16_t color)
             displayWriteDataWord(color);
         }
     }
+}
+
+void clearPattern(uint16_t color)
+{
+    displayClear(color);
+    vTaskDelay(pdMS_TO_TICKS(500));
+    displaySendCommand(0x28); // display off
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    displaySendCommand(0x29); // display on
 }
 
 void displayTask()
@@ -269,12 +300,13 @@ void displayTask()
 
     spiInit();
     displayPinsInit();
-    displayReset();
     displayInit();
-    displayClear(WHITE);
+    vTaskDelay(pdMS_TO_TICKS(1000));
     while (true)
     {
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        clearPattern(WHITE);
+        clearPattern(BLACK);
+        clearPattern(LIGHTBLUE);
     }
     // lv_init();
     // lv_display_t *display = lv_display_create(horRes, vertRes);
