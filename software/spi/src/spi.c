@@ -31,6 +31,7 @@ void spiInit()
   GPIOA->OTYPER &= ~GPIO_OTYPER_OT2;         // set output type to "push-pull (reset-state)"
   GPIOA->OSPEEDR &= GPIO_OSPEEDR_OSPEED2_0;  // set output speed to slow, bit 0 is "0"
   GPIOA->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED2_1; // set output speed to slow, bit 1 is "0"
+
   // // PA6 -> SPI1_MISO
   // GPIOA->MODER &= ~GPIO_MODER_MODE6_0;  // set mode to "alternate-function push-pull", bit 0 is "0"
   // GPIOA->MODER |= GPIO_MODER_MODE6_1;   // set mode to "alternate-function push-pull", bit 1 is "1"
@@ -51,9 +52,9 @@ void spiInit()
   SPI1->CR1 &= ~SPI_CR1_SPE;              // disable SPI before changing settings
 
   // CR1
-  // SPI1->CR1 |= SPI_CR1_BR_0;      // set baudrate scaler to 256, bit 0 is "1"
-  // SPI1->CR1 |= SPI_CR1_BR_1;      // set baudrate scaler to 256, bit 1 is "1"
-  // SPI1->CR1 |= SPI_CR1_BR_2;      // set baudrate scaler to 256, bit 2 is "1"
+  SPI1->CR1 &= ~SPI_CR1_BR_0;     // set baudrate scaler to 8(0b010), bit 0 is "0"
+  SPI1->CR1 |= SPI_CR1_BR_1;      // set baudrate scaler to 8(0b010), bit 1 is "1"
+  SPI1->CR1 &= ~SPI_CR1_BR_2;     // set baudrate scaler to 8(0b010), bit 2 is "0"
   SPI1->CR1 &= ~SPI_CR1_CPOL;     // clock line is low when idle
   SPI1->CR1 &= ~SPI_CR1_CPHA;     // first clock transition is the first edge
   SPI1->CR1 |= SPI_CR1_BIDIMODE;  // 1-line bidirectional data mode selected

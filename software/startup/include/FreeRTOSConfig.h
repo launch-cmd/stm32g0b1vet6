@@ -57,7 +57,7 @@
  * The default value is set to 20MHz and matches the QEMU demo settings.  Your
  * application will certainly need a different value so set this correctly.
  * This is very often, but not always, equal to the main system clock frequency. */
-#define configCPU_CLOCK_HZ    ( ( unsigned long ) 16000000 )
+#define configCPU_CLOCK_HZ    ( ( unsigned long ) 64000000 )
 
 /* configSYSTICK_CLOCK_HZ is an optional parameter for ARM Cortex-M ports only.
  *

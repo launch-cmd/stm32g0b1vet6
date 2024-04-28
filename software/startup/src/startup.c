@@ -6,18 +6,84 @@
 // This function should be called before main() is entered.
 static void clocksInit()
 {
-  RCC->APBENR2 |= RCC_APBENR2_SYSCFGEN; // enable SYSCFG, COMP and VREFBUF clock
-  RCC->APBENR1 |= RCC_APBENR1_PWREN;    // enable power interface clock
-  RCC->APBENR1 |= RCC_APBENR1_DBGEN;    // enable debug support clock
+  FLASH->ACR &= ~FLASH_ACR_LATENCY_0; // set 2 wait states for flash(0b010), bit 0 is "0"
+  FLASH->ACR |= FLASH_ACR_LATENCY_1;  // set 2 wait states for flash(0b010), bit 1 is "1"
+  FLASH->ACR &= ~FLASH_ACR_LATENCY_2; // set 2 wait states for flash(0b010), bit 2 is "0"
+  while ((FLASH->ACR & FLASH_ACR_LATENCY) != 0x2)
+  {
+    // wait for flash latency to be set
+  }
 
-  RCC->CFGR |= RCC_CFGR_PPRE_0; // set prescaler to 16(0b111), bit "0" is "1"
-  RCC->CFGR |= RCC_CFGR_PPRE_1; // set prescaler to 16(0b111), bit "1" is "1"
-  RCC->CFGR |= RCC_CFGR_PPRE_2; // set prescaler to 16(0b111), bit "2" is "1"
+  // RCC->APBENR2 |= RCC_APBENR2_SYSCFGEN; // enable SYSCFG, COMP and VREFBUF clock
+  // RCC->APBENR1 |= RCC_APBENR1_PWREN;    // enable power interface clock
+  // RCC->APBENR1 |= RCC_APBENR1_DBGEN;    // enable debug support clock
+
+  // RCC->CFGR |= RCC_CFGR_PPRE_0; // set prescaler to 16(0b111), bit "0" is "1"
+  // RCC->CFGR |= RCC_CFGR_PPRE_1; // set prescaler to 16(0b111), bit "1" is "1"
+  // RCC->CFGR |= RCC_CFGR_PPRE_2; // set prescaler to 16(0b111), bit "2" is "1"
 
   RCC->CR |= RCC_CR_HSION; // enable HSI
   while (!(RCC->CR & RCC_CR_HSION))
   {
     // wait for HSI to be ready
+  }
+
+  // setup PLL
+  RCC->CR &= ~RCC_CR_PLLON; // disable PLL
+  while ((RCC->CR & RCC_CR_PLLRDY))
+  {
+    // wait for PLL to be off
+  }
+  RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLSRC_0; // set input clock source to HSI16(0b10), bit 0 is "0"
+  RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_1;  // set input clock source to HSI16(0b10), bit 1 is "1"
+  RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLM_0;   // set input division factor to 1 (0b000), bit 0 is "0"
+  RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLM_1;   // set input division factor to 1 (0b000), bit 1 is "0"
+  RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLM_2;   // set input division factor to 1 (0b000), bit 2 is "0"
+  RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLN_0;   // set multiplication factor to 8 (0b0001000), bit 0 is "0"
+  RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLN_1;   // set multiplication factor to 8 (0b0001000), bit 1 is "0"
+  RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLN_2;   // set multiplication factor to 8 (0b0001000), bit 2 is "0"
+  RCC->PLLCFGR |= RCC_PLLCFGR_PLLN_3;    // set multiplication factor to 8 (0b0001000), bit 3 is "1"
+  RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLN_4;   // set multiplication factor to 8 (0b0001000), bit 4 is "0"
+  RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLN_5;   // set multiplication factor to 8 (0b0001000), bit 5 is "0"
+  RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLN_6;   // set multiplication factor to 8 (0b0001000), bit 6 is "0"
+  RCC->PLLCFGR |= RCC_PLLCFGR_PLLR_0;    // set VCO division factor to 2 (0b001), bit 0 is "1"
+  RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLR_1;   // set VCO division factor to 2 (0b001), bit 1 is "0"
+  RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLR_2;   // set VCO division factor to 2 (0b001), bit 2 is "0"
+
+  RCC->PLLCFGR |= RCC_PLLCFGR_PLLQ_0;    // set VCO division factor to 2 (0b001), bit 0 is "1"
+  RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLQ_1;   // set VCO division factor to 2 (0b001), bit 1 is "0"
+  RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLQ_2;   // set VCO division factor to 2 (0b001), bit 2 is "0"
+
+  RCC->PLLCFGR |= RCC_PLLCFGR_PLLP_0;    // set VCO division factor to 2 (0b00001), bit 0 is "1"
+  RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLP_1;   // set VCO division factor to 2 (0b00001), bit 1 is "0"
+  RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLP_2;   // set VCO division factor to 2 (0b00001), bit 2 is "0"
+  RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLP_3;   // set VCO division factor to 2 (0b00001), bit 2 is "0"
+  RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLP_4;   // set VCO division factor to 2 (0b00001), bit 2 is "0"
+
+
+  RCC->CR |= RCC_CR_PLLON;               // enable PLL
+  RCC->PLLCFGR |= RCC_PLLCFGR_PLLREN;    // enable clock output to R domain of PLL
+  while (!(RCC->CR & RCC_CR_PLLRDY))
+  {
+    // wait for PLL to be ready
+  }
+
+  RCC->CFGR &= ~RCC_CFGR_HPRE_0; // set AHB prescaler to 1(0b0xxx), bit 0 is "x"
+  RCC->CFGR &= ~RCC_CFGR_HPRE_1; // set AHB prescaler to 1(0b0xxx), bit 1 is "x"
+  RCC->CFGR &= ~RCC_CFGR_HPRE_2; // set AHB prescaler to 1(0b0xxx), bit 2 is "x"
+  RCC->CFGR &= ~RCC_CFGR_HPRE_3; // set AHB prescaler to 1(0b0xxx), bit 3 is "0"
+
+  RCC->CFGR &= ~RCC_CFGR_PPRE_0; // set APB prescaler to 1(0b0xx), bit 0 is "x"
+  RCC->CFGR &= ~RCC_CFGR_PPRE_1; // set APB prescaler to 1(0b0xx), bit 1 is "x"
+  RCC->CFGR &= ~RCC_CFGR_PPRE_2; // set APB prescaler to 1(0b0xx), bit 2 is "0"
+
+  RCC->CFGR &= ~RCC_CFGR_SW_0; // set PLL as system clock source(0b010), bit 0 is "0"
+  RCC->CFGR |= RCC_CFGR_SW_1;  // set PLL as system clock source(0b010), bit 1 is "1"
+  RCC->CFGR &= ~RCC_CFGR_SW_2; // set PLL as system clock source(0b010), bit 2 is "0"
+
+  while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLLRCLK)
+  {
+    // wait for PLL to become the active system clock source
   }
 }
 
