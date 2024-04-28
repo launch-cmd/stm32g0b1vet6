@@ -1,17 +1,10 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include <inttypes.h>
 #include <FreeRTOS.h>
 #include "FreeRTOS_IP.h"
 #include "gpio.h"
 #include "task.h"
 #include "log.h"
 #include "board_config.h"
-#include "spi.h"
-#include "lv_conf.h"
-
-#define LV_CONF_INCLUDE_SIMPLE
-#include "lvgl.h"
+#include "display.h"
 
 static StaticTask_t mainTaskBuffer;
 static StackType_t mainTaskStack[configMINIMAL_STACK_SIZE * 2];
@@ -23,6 +16,10 @@ void mainTask(void *pvParameters)
   uint16_t led = PIN('F', 13);        // Blue LED
   gpioSetMode(led, GPIO_MODE_OUTPUT); // Set blue LED to output mode
   gpioWrite(led, true);               // active low
+
+
+  // start other tasks
+  initDisplayTask();
 
   bool statusLedIsOn = false;
   uint32_t counter = 0;
@@ -36,13 +33,6 @@ void mainTask(void *pvParameters)
     LOG_INFO("counting: %ld  %lf.", counter, counter1);
     LOG_WARN("counting: %ld  %lf.", counter, counter1);
     LOG_ERROR("counting: %ld  %lf.", counter, counter1);
-
-    spiTranferByte('W');
-    spiTranferByte('A');
-    spiTranferByte('N');
-    spiTranferByte('D');
-    spiTranferByte('E');
-    spiTranferByte('R');
 
     counter++;
     counter1++;
@@ -65,16 +55,6 @@ void main(void)
 {
   uartInit();
   uartEnable();
-  
-  // init display
-  spiInit();
-  lv_init();
-  const uint32_t horRes = 240;
-  const uint32_t vertRes = 135;
-  lv_color_t dispBuff[(horRes * vertRes)];
-  lv_display_t *display = lv_display_create(horRes, vertRes);
-  lv_display_set_buffers(display, dispBuff, NULL, sizeof(dispBuff), LV_DISP_RENDER_MODE_FULL);
-
   LOG_INFO("Starting main.");
 
   /* Initialise the TCP/IP stack. */

@@ -1,2 +1,2 @@
 display_inc = include_directories('include')
-# display_src = files(['src/.c'])
+display_src = files(['src/display.c'])

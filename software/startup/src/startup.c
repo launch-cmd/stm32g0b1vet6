@@ -10,6 +10,10 @@ static void clocksInit()
   RCC->APBENR1 |= RCC_APBENR1_PWREN;    // enable power interface clock
   RCC->APBENR1 |= RCC_APBENR1_DBGEN;    // enable debug support clock
 
+  RCC->CFGR |= RCC_CFGR_PPRE_0; // set prescaler to 16(0b111), bit "0" is "1"
+  RCC->CFGR |= RCC_CFGR_PPRE_1; // set prescaler to 16(0b111), bit "1" is "1"
+  RCC->CFGR |= RCC_CFGR_PPRE_2; // set prescaler to 16(0b111), bit "2" is "1"
+
   RCC->CR |= RCC_CR_HSION; // enable HSI
   while (!(RCC->CR & RCC_CR_HSION))
   {

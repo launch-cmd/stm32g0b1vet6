@@ -1,7 +1,10 @@
 internal_deps = []
 
 subdir('display')
-display_dep = declare_dependency(include_directories: display_inc)
+display_dep = declare_dependency(
+    sources: [display_src],
+    include_directories: display_inc,
+)
 internal_deps = internal_deps + [display_dep]
 
 subdir('gpio')

@@ -1,6 +1,8 @@
 #ifndef _LOG_H__
 #define _LOG_H__
 
+#include <stdio.h>
+
 #define LOG_ERROR(f_, ...) printf(("\x1b[31m"            \
                                    "ERROR: " f_ "\r\n"), \
                                   ##__VA_ARGS__)

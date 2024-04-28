@@ -5,5 +5,5 @@
 
 void spiInit();
 void spiTranferByte(uint8_t b);
-
+void spiWaitForIdle();
 #endif
