@@ -9,7 +9,7 @@
 #include "display.h"
 
 static StaticTask_t displayTaskBuffer;
-static StackType_t displayTaskStack[configMINIMAL_STACK_SIZE * 2];
+static StackType_t displayTaskStack[1000];
 
 const uint32_t horRes = 240;
 const uint32_t vertRes = 135;
@@ -21,53 +21,21 @@ static lv_color_t dispBuff2[PART_BUF_SIZE];
 void displaySelect()
 {
     GPIOA->ODR &= ~GPIO_ODR_OD3; // select display
-    while ((GPIOA->IDR & GPIO_IDR_ID3))
-    {
-        // wait for CS to be low
-    }
-    for (int i = 0; i < 10; i++)
-    {
-        // wait for io
-    }
 }
 
 void displayDeselect()
 {
     GPIOA->ODR |= GPIO_ODR_OD3; // deselect display
-    while ((GPIOA->IDR & GPIO_IDR_ID3) == 0)
-    {
-        // wait for CS to be high
-    }
-    for (int i = 0; i < 10; i++)
-    {
-        // wait for io
-    }
 }
 
 void displayCommandMode()
 {
     GPIOA->ODR &= ~GPIO_ODR_OD4; // set DC pin low to signal data
-    while (GPIOA->IDR & GPIO_IDR_ID4)
-    {
-        // wait for DC to be low
-    }
-    for (int i = 0; i < 10; i++)
-    {
-        // wait for io
-    }
 }
 
 void displayDataMode()
 {
     GPIOA->ODR |= GPIO_ODR_OD4; // set DC pin high to signal data
-    while ((GPIOA->IDR & GPIO_IDR_ID4) == 0)
-    {
-        // wait for DC to be high
-    }
-    for (int i = 0; i < 10; i++)
-    {
-        // wait for io
-    }
 }
 
 void displaySendCommand(uint8_t data)
@@ -271,26 +239,49 @@ void displayClear(uint16_t color)
 
 void clearPattern(uint16_t color)
 {
+    // displaySendCommand(0x29); // display on
     displayClear(color);
-    vTaskDelay(pdMS_TO_TICKS(500));
-    displaySendCommand(0x28); // display off
-    vTaskDelay(pdMS_TO_TICKS(1000));
-    displaySendCommand(0x29); // display on
+    // vTaskDelay(pdMS_TO_TICKS(50));
+    // displaySendCommand(0x28); // display off
 }
 
 void lvDisplayFlush(lv_display_t *disp, const lv_area_t *area, uint8_t *color_p)
 {
-    uint32_t x, y;
-    for (y = area->y1; y < area->y2; y++)
-    {
-        for (x = area->x1; x < area->x2; x++)
-        {
-            displaySetCursor(x, y, x, y);
-            displaySendData(*color_p);
-        }
-    }
+    // displaySetCursor(0, 0, (horRes - 1), (vertRes - 1));
+    // uint32_t x, y;
+    // for (y = area->y1; y < area->y2; y++)
+    // {
+    //     for (x = area->x1; x < area->x2; x++)
+    //     {
+    //         displaySendData(*color_p);
+    //     }
+    // }
 
     lv_display_flush_ready(disp);
+}
+
+static lv_obj_t *ui_Screen1;
+static lv_obj_t *ui_Hello_World;
+static lv_obj_t *ui_Button2;
+void ui_Screen1_screen_init(void)
+{
+    ui_Screen1 = lv_obj_create(NULL);
+    lv_obj_clear_flag(ui_Screen1, LV_OBJ_FLAG_SCROLLABLE); /// Flags
+
+    ui_Hello_World = lv_label_create(ui_Screen1);
+    lv_obj_set_width(ui_Hello_World, LV_SIZE_CONTENT);  /// 1
+    lv_obj_set_height(ui_Hello_World, LV_SIZE_CONTENT); /// 1
+    lv_obj_set_align(ui_Hello_World, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_Hello_World, "Hello World");
+
+    ui_Button2 = lv_btn_create(ui_Screen1);
+    lv_obj_set_width(ui_Button2, 50);
+    lv_obj_set_height(ui_Button2, 25);
+    lv_obj_set_x(ui_Button2, 0);
+    lv_obj_set_y(ui_Button2, -5);
+    lv_obj_set_align(ui_Button2, LV_ALIGN_BOTTOM_MID);
+    lv_obj_add_flag(ui_Button2, LV_OBJ_FLAG_SCROLL_ON_FOCUS); /// Flags
+    lv_obj_clear_flag(ui_Button2, LV_OBJ_FLAG_SCROLLABLE);    /// Flags
 }
 
 void displayTask()
@@ -300,37 +291,30 @@ void displayTask()
     spiInit();
     displayPinsInit();
     displayInit();
-    lv_init();
-    lv_display_t *display = lv_display_create(horRes, vertRes);
-    lv_display_set_buffers(display, &dispBuff1, dispBuff2, DISP_BUF_SIZE, LV_DISPLAY_RENDER_MODE_PARTIAL);
-    lv_display_set_flush_cb(display, lvDisplayFlush);
 
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    // lv_init();
+    // lv_display_create(horRes, vertRes);
+    // lv_display_set_buffers(lv_disp_get_default(), &dispBuff1, dispBuff2, DISP_BUF_SIZE, LV_DISPLAY_RENDER_MODE_PARTIAL);
+    // lv_display_set_flush_cb(lv_disp_get_default(), lvDisplayFlush);
+    // lv_tick_set_cb(xTaskGetTickCount);
+
+    // lv_disp_set_theme(display, lv_theme_default_get());
+    // ui_Screen1_screen_init();
+    // lv_disp_load_scr(ui_Screen1);
+
     while (true)
     {
+        // uint32_t time = lv_timer_handler();
+        // vTaskDelay(pdMS_TO_TICKS(time));
+        clearPattern(RED);
         clearPattern(WHITE);
-        clearPattern(BLACK);
-        clearPattern(LIGHTBLUE);
+        clearPattern(GREEN);
+        clearPattern(BLUE);
     }
-
-
-    // /*Change the active screen's background color*/
-    // lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x003a57), LV_PART_MAIN);
-
-    // /*Create a white label, set its text and align it to the center*/
-    // lv_obj_t *label = lv_label_create(lv_screen_active());
-    // lv_label_set_text(label, "Hello world");
-    // lv_obj_set_style_text_color(lv_screen_active(), lv_color_hex(0xffffff), LV_PART_MAIN);
-    // lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
-    // while (true)
-    // {
-    //     vTaskDelay(pdMS_TO_TICKS(1));
-    //     lv_tick_inc(1);
-    // }
 }
 
 void initDisplayTask()
 {
-    xTaskCreateStatic(displayTask, "Disp", configMINIMAL_STACK_SIZE * 2,
+    xTaskCreateStatic(displayTask, "Disp", 1000,
                       NULL, tskIDLE_PRIORITY + 2, displayTaskStack, &displayTaskBuffer);
 }

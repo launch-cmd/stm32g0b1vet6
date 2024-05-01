@@ -97,8 +97,4 @@ void spiWaitForIdle()
   {
     // wait for busy flag to clear
   }
-  for (int i = 0; i < 250; i++)
-  {
-    // spinning wait for clock to settle
-  }
 }
