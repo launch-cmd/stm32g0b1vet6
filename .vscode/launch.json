@@ -18,6 +18,7 @@
             "showDevDebugOutput": "vscode",
             "runToEntryPoint": "main",
             "device": "STM32G0B1",
+            "serverArgs": ["--frequency", "8MHz"],
             "svdFile": "${workspaceFolder}/.vscode/STM32G0B1.svd"
         }
     ]
