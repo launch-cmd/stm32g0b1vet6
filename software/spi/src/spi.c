@@ -8,29 +8,29 @@ void spiInit()
   RCC->IOPENR |= RCC_IOPENR_GPIOAEN; // enable GPIOA clock
 
   // PA1 -> SPI1_SCK
-  GPIOA->MODER &= ~GPIO_MODER_MODE1_0;       // set mode to "alternate-function push-pull", bit 0 is "0"
-  GPIOA->MODER |= GPIO_MODER_MODE1_1;        // set mode to "alternate-function push-pull", bit 1 is "1"
-  GPIOA->AFR[0] &= GPIO_AFRL_AFSEL1_0;       // set alternate-function to SPI1(AF0), bit 0 is "0"
-  GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL1_1;      // set alternate-function to SPI1(AF0), bit 1 is "0"
-  GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL1_2;      // set alternate-function to SPI1(AF0), bit 2 is "0"
-  GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL1_3;      // set alternate-function to SPI1(AF0), bit 3 is "0"
-  GPIOA->OTYPER &= ~GPIO_OTYPER_OT1;         // set output type to "push-pull (reset-state)"
-  GPIOA->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED1_0; // set output speed to slow, bit 0 is "0"
-  GPIOA->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED1_1; // set output speed to slow, bit 1 is "0"
-  GPIOA->PUPDR &= ~GPIO_PUPDR_PUPD1_0;       // enable pull-down(0b10), bit 0 is "0"
-  GPIOA->PUPDR |= GPIO_PUPDR_PUPD1_1;        // enable pull-down(0b10), bit 1 is "1"
-  GPIOA->ODR &= ~GPIO_ODR_OD1;               // set low signal to match SPI settings
+  GPIOA->MODER &= ~GPIO_MODER_MODE1_0;      // set mode to "alternate-function push-pull", bit 0 is "0"
+  GPIOA->MODER |= GPIO_MODER_MODE1_1;       // set mode to "alternate-function push-pull", bit 1 is "1"
+  GPIOA->AFR[0] &= GPIO_AFRL_AFSEL1_0;      // set alternate-function to SPI1(AF0), bit 0 is "0"
+  GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL1_1;     // set alternate-function to SPI1(AF0), bit 1 is "0"
+  GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL1_2;     // set alternate-function to SPI1(AF0), bit 2 is "0"
+  GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL1_3;     // set alternate-function to SPI1(AF0), bit 3 is "0"
+  GPIOA->OTYPER &= ~GPIO_OTYPER_OT1;        // set output type to "push-pull (reset-state)"
+  GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEED1_0; // set output speed to high speed, bit 0 is "1"
+  GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEED1_1; // set output speed to high speed, bit 1 is "1"
+  GPIOA->PUPDR &= ~GPIO_PUPDR_PUPD1_0;      // enable pull-down(0b10), bit 0 is "0"
+  GPIOA->PUPDR |= GPIO_PUPDR_PUPD1_1;       // enable pull-down(0b10), bit 1 is "1"
+  GPIOA->ODR &= ~GPIO_ODR_OD1;              // set low signal to match SPI settings
 
   // PA2 -> SPI1_MOSI
-  GPIOA->MODER &= ~GPIO_MODER_MODE2_0;       // set mode to "alternate-function push-pull", bit 0 is "0"
-  GPIOA->MODER |= GPIO_MODER_MODE2_1;        // set mode to "alternate-function push-pull", bit 1 is "1"
-  GPIOA->AFR[0] &= GPIO_AFRL_AFSEL2_0;       // set alternate-function to SPI1(AF0), bit 0 is "0"
-  GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL2_1;      // set alternate-function to SPI1(AF0), bit 1 is "0"
-  GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL2_2;      // set alternate-function to SPI1(AF0), bit 2 is "0"
-  GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL2_3;      // set alternate-function to SPI1(AF0), bit 3 is "0"
-  GPIOA->OTYPER &= ~GPIO_OTYPER_OT2;         // set output type to "push-pull (reset-state)"
-  GPIOA->OSPEEDR &= GPIO_OSPEEDR_OSPEED2_0;  // set output speed to slow, bit 0 is "0"
-  GPIOA->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED2_1; // set output speed to slow, bit 1 is "0"
+  GPIOA->MODER &= ~GPIO_MODER_MODE2_0;      // set mode to "alternate-function push-pull", bit 0 is "0"
+  GPIOA->MODER |= GPIO_MODER_MODE2_1;       // set mode to "alternate-function push-pull", bit 1 is "1"
+  GPIOA->AFR[0] &= GPIO_AFRL_AFSEL2_0;      // set alternate-function to SPI1(AF0), bit 0 is "0"
+  GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL2_1;     // set alternate-function to SPI1(AF0), bit 1 is "0"
+  GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL2_2;     // set alternate-function to SPI1(AF0), bit 2 is "0"
+  GPIOA->AFR[0] &= ~GPIO_AFRL_AFSEL2_3;     // set alternate-function to SPI1(AF0), bit 3 is "0"
+  GPIOA->OTYPER &= ~GPIO_OTYPER_OT2;        // set output type to "push-pull (reset-state)"
+  GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEED2_0; // set output speed to high speed, bit 0 is "1"
+  GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEED2_1; // set output speed to high speed, bit 1 is "1"
 
   // // PA6 -> SPI1_MISO
   // GPIOA->MODER &= ~GPIO_MODER_MODE6_0;  // set mode to "alternate-function push-pull", bit 0 is "0"
@@ -53,7 +53,7 @@ void spiInit()
 
   // CR1
   SPI1->CR1 &= ~SPI_CR1_BR_0;     // set baudrate scaler to 8(0b010), bit 0 is "0"
-  SPI1->CR1 |= SPI_CR1_BR_1;      // set baudrate scaler to 8(0b010), bit 1 is "1"
+  SPI1->CR1 &= ~SPI_CR1_BR_1;     // set baudrate scaler to 8(0b010), bit 1 is "1"
   SPI1->CR1 &= ~SPI_CR1_BR_2;     // set baudrate scaler to 8(0b010), bit 2 is "0"
   SPI1->CR1 &= ~SPI_CR1_CPOL;     // clock line is low when idle
   SPI1->CR1 &= ~SPI_CR1_CPHA;     // first clock transition is the first edge
