@@ -10,13 +10,14 @@
 
 static StaticTask_t displayTaskBuffer;
 static StackType_t displayTaskStack[1000];
-
 const uint32_t horRes = 240;
 const uint32_t vertRes = 135;
 #define DISP_BUF_SIZE (32400) // 240 * 135
 #define PART_BUF_SIZE (3240)  // 240 * 135 / 10
 static lv_color_t dispBuff1[PART_BUF_SIZE];
 static lv_color_t dispBuff2[PART_BUF_SIZE];
+static lv_disp_draw_buf_t drawBuff;
+static lv_disp_drv_t dispDriver;
 
 void displaySelect()
 {
@@ -237,51 +238,19 @@ void displayClear(uint16_t color)
     }
 }
 
-void clearPattern(uint16_t color)
+void displayClearLvgl(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
 {
-    // displaySendCommand(0x29); // display on
-    displayClear(color);
-    // vTaskDelay(pdMS_TO_TICKS(50));
-    // displaySendCommand(0x28); // display off
-}
-
-void lvDisplayFlush(lv_display_t *disp, const lv_area_t *area, uint8_t *color_p)
-{
-    // displaySetCursor(0, 0, (horRes - 1), (vertRes - 1));
-    // uint32_t x, y;
-    // for (y = area->y1; y < area->y2; y++)
-    // {
-    //     for (x = area->x1; x < area->x2; x++)
-    //     {
-    //         displaySendData(*color_p);
-    //     }
-    // }
-
-    lv_display_flush_ready(disp);
-}
-
-static lv_obj_t *ui_Screen1;
-static lv_obj_t *ui_Hello_World;
-static lv_obj_t *ui_Button2;
-void ui_Screen1_screen_init(void)
-{
-    ui_Screen1 = lv_obj_create(NULL);
-    lv_obj_clear_flag(ui_Screen1, LV_OBJ_FLAG_SCROLLABLE); /// Flags
-
-    ui_Hello_World = lv_label_create(ui_Screen1);
-    lv_obj_set_width(ui_Hello_World, LV_SIZE_CONTENT);  /// 1
-    lv_obj_set_height(ui_Hello_World, LV_SIZE_CONTENT); /// 1
-    lv_obj_set_align(ui_Hello_World, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_Hello_World, "Hello World");
-
-    ui_Button2 = lv_btn_create(ui_Screen1);
-    lv_obj_set_width(ui_Button2, 50);
-    lv_obj_set_height(ui_Button2, 25);
-    lv_obj_set_x(ui_Button2, 0);
-    lv_obj_set_y(ui_Button2, -5);
-    lv_obj_set_align(ui_Button2, LV_ALIGN_BOTTOM_MID);
-    lv_obj_add_flag(ui_Button2, LV_OBJ_FLAG_SCROLL_ON_FOCUS); /// Flags
-    lv_obj_clear_flag(ui_Button2, LV_OBJ_FLAG_SCROLLABLE);    /// Flags
+    int32_t x, y;
+    for (y = area->y1; y <= area->y2; y++)
+    {
+        for (x = area->x1; x <= area->x2; x++)
+        {
+            displaySetCursor(x, y, x, y);
+            displayWriteDataWord(color_p->full);
+            color_p++;
+        }
+    }
+    lv_disp_flush_ready(disp);
 }
 
 void displayTask()
@@ -291,47 +260,34 @@ void displayTask()
     spiInit();
     displayPinsInit();
     displayInit();
+    lv_init();
+    lv_disp_draw_buf_init(&drawBuff, &dispBuff1, &dispBuff2, PART_BUF_SIZE);
 
-    // lv_init();
-    // lv_display_create(horRes, vertRes);
-    // lv_display_set_buffers(lv_disp_get_default(), &dispBuff1, dispBuff2, DISP_BUF_SIZE, LV_DISPLAY_RENDER_MODE_PARTIAL);
-    // lv_display_set_flush_cb(lv_disp_get_default(), lvDisplayFlush);
-    // lv_tick_set_cb(xTaskGetTickCount);
+    lv_disp_drv_init(&dispDriver);
+    dispDriver.flush_cb = displayClearLvgl;
+    dispDriver.draw_buf = &drawBuff;
+    dispDriver.hor_res = horRes;
+    dispDriver.ver_res = vertRes;
+    lv_disp_drv_register(&dispDriver);
 
-    // lv_disp_set_theme(display, lv_theme_default_get());
-    // ui_Screen1_screen_init();
-    // lv_disp_load_scr(ui_Screen1);
+    // create scene
+    lv_obj_t *text1 = lv_textarea_create(lv_scr_act());
+    lv_textarea_set_align(text1, LV_TEXT_ALIGN_CENTER);
+    lv_textarea_add_text(text1, "Hello World!");
+    lv_obj_set_x(text1, 30);
+    lv_obj_set_y(text1, 30);
+    lv_obj_set_size(text1, (240 - 60), (135 - 60));
 
     while (true)
     {
-        // uint32_t time = lv_timer_handler();
-        // vTaskDelay(pdMS_TO_TICKS(time));
-        clearPattern(WHITE);
-        clearPattern(BLACK);
-        clearPattern(BLUE);
-        clearPattern(BRED);
-        clearPattern(GRED);
-        clearPattern(GBLUE);
-        clearPattern(RED);
-        clearPattern(MAGENTA);
-        clearPattern(GREEN);
-        clearPattern(CYAN);
-        clearPattern(YELLOW);
-        clearPattern(BROWN);
-        clearPattern(BRRED);
-        clearPattern(GRAY);
-        clearPattern(DARKBLUE);
-        clearPattern(LIGHTBLUE);
-        clearPattern(GRAYBLUE);
-        clearPattern(LIGHTGREEN);
-        clearPattern(LGRAY);
-        clearPattern(LGRAYBLUE);
-        clearPattern(LBBLUE);
+        uint32_t ticks = lv_timer_handler();
+        vTaskDelay(ticks);
+        lv_tick_inc((ticks / portTICK_PERIOD_MS));
     }
 }
 
 void initDisplayTask()
 {
     xTaskCreateStatic(displayTask, "Disp", 1000,
-                      NULL, tskIDLE_PRIORITY + 1, displayTaskStack, &displayTaskBuffer);
+                      NULL, tskIDLE_PRIORITY + 2, displayTaskStack, &displayTaskBuffer);
 }
