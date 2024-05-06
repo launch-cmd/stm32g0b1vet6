@@ -32,3 +32,12 @@ startup_dep = declare_dependency(
     include_directories: startup_inc,
 )
 internal_deps = internal_deps + [startup_dep]
+
+subdir('lvgl_ui')
+lvgl_ui_dep = declare_dependency(
+    sources: lvgl_ui_src,
+    include_directories: lvgl_ui_inc
+)
+internal_deps = internal_deps + [lvgl_ui_dep]
+
+

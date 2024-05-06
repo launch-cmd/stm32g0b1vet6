@@ -17,26 +17,15 @@ void mainTask(void *pvParameters)
   gpioSetMode(led, GPIO_MODE_OUTPUT); // Set blue LED to output mode
   gpioWrite(led, true);               // active low
 
-
   // start other tasks
   initDisplayTask();
 
   bool statusLedIsOn = false;
-  uint32_t counter = 0;
-  double counter1 = 1.23456789;
   for (;;)
   {
     gpioWrite(led, statusLedIsOn);
     statusLedIsOn = !statusLedIsOn;
-
-    LOG_DEBUG("counting: %ld  %lf.", counter, counter1);
-    LOG_INFO("counting: %ld  %lf.", counter, counter1);
-    LOG_WARN("counting: %ld  %lf.", counter, counter1);
-    LOG_ERROR("counting: %ld  %lf.", counter, counter1);
-
-    counter++;
-    counter1++;
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    vTaskDelay(pdMS_TO_TICKS(500));
   }
 }
 

@@ -7,6 +7,8 @@
 #include "spi.h"
 #include "board_config.h"
 #include "display.h"
+#include "ui.h"
+#include "timers.h"
 
 static StaticTask_t displayTaskBuffer;
 static StackType_t displayTaskStack[1000];
@@ -18,6 +20,14 @@ static lv_color_t dispBuff1[PART_BUF_SIZE];
 static lv_color_t dispBuff2[PART_BUF_SIZE];
 static lv_disp_draw_buf_t drawBuff;
 static lv_disp_drv_t dispDriver;
+
+TimerHandle_t timer;
+StaticTimer_t timerBuff;
+
+void vTimerCallback(TimerHandle_t xTimer)
+{
+    lv_tick_inc(1);
+}
 
 void displaySelect()
 {
@@ -241,11 +251,11 @@ void displayClear(uint16_t color)
 void displayClearLvgl(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
 {
     int32_t x, y;
+    displaySetCursor(area->x1, area->y1, area->x2, area->y2);
     for (y = area->y1; y <= area->y2; y++)
     {
         for (x = area->x1; x <= area->x2; x++)
         {
-            displaySetCursor(x, y, x, y);
             displayWriteDataWord(color_p->full);
             color_p++;
         }
@@ -270,19 +280,16 @@ void displayTask()
     dispDriver.ver_res = vertRes;
     lv_disp_drv_register(&dispDriver);
 
-    // create scene
-    lv_obj_t *text1 = lv_textarea_create(lv_scr_act());
-    lv_textarea_set_align(text1, LV_TEXT_ALIGN_CENTER);
-    lv_textarea_add_text(text1, "Hello World!");
-    lv_obj_set_x(text1, 30);
-    lv_obj_set_y(text1, 30);
-    lv_obj_set_size(text1, (240 - 60), (135 - 60));
+    timer = xTimerCreateStatic("lvglTimer", pdMS_TO_TICKS(1), pdTRUE, 0, vTimerCallback, &timerBuff);
+    configASSERT(timer);
+    xTimerStart(timer, 0);
+
+    ui_init();
 
     while (true)
     {
-        uint32_t ticks = lv_timer_handler();
-        vTaskDelay(ticks);
-        lv_tick_inc((ticks / portTICK_PERIOD_MS));
+        lv_timer_handler_run_in_period(10);
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
