@@ -29,24 +29,87 @@ void vTimerCallback(TimerHandle_t xTimer)
     lv_tick_inc(1);
 }
 
+void displayPinsInit()
+{
+    RCC->IOPENR |= RCC_IOPENR_GPIOBEN; // enable GPIOB clock
+
+    // PB6 -> LCD_BL
+    GPIOB->MODER |= GPIO_MODER_MODE6_0;       // set mode to "general purpose output", bit 0 is "1"
+    GPIOB->MODER &= ~GPIO_MODER_MODE6_1;      // set mode to "general purpose output", bit 0 is "0"
+    GPIOB->OTYPER &= ~GPIO_OTYPER_OT6;        // set output type to "push-pull (reset-state)"
+    GPIOB->OSPEEDR |= GPIO_OSPEEDR_OSPEED6_0; // set output speed to high speed, bit 0 is "0"
+    GPIOB->OSPEEDR |= GPIO_OSPEEDR_OSPEED6_1; // set output speed to high speed, bit 1 is "0"
+    GPIOB->ODR |= GPIO_ODR_OD6;               // enable backlight
+
+    // PB7 -> LCD_RST
+    GPIOB->MODER |= GPIO_MODER_MODE7_0;       // set mode to "general purpose output", bit 0 is "1"
+    GPIOB->MODER &= ~GPIO_MODER_MODE7_1;      // set mode to "general purpose output", bit 0 is "0"
+    GPIOB->OTYPER &= ~GPIO_OTYPER_OT7;        // set output type to "push-pull (reset-state)"
+    GPIOB->OSPEEDR |= GPIO_OSPEEDR_OSPEED7_0; // set output speed to high speed, bit 0 is "1"
+    GPIOB->OSPEEDR |= GPIO_OSPEEDR_OSPEED7_1; // set output speed to high speed, bit 1 is "1"
+
+    // PB8 -> LCD_DC
+    GPIOB->MODER |= GPIO_MODER_MODE8_0;       // set mode to "general purpose output", bit 0 is "1"
+    GPIOB->MODER &= ~GPIO_MODER_MODE8_1;      // set mode to "general purpose output", bit 0 is "0"
+    GPIOB->OTYPER &= ~GPIO_OTYPER_OT8;        // set output type to "push-pull (reset-state)"
+    GPIOB->OSPEEDR |= GPIO_OSPEEDR_OSPEED8_0; // set output speed to high speed, bit 0 is "1"
+    GPIOB->OSPEEDR |= GPIO_OSPEEDR_OSPEED8_1; // set output speed to high speed, bit 1 is "1"
+    GPIOB->ODR &= ~GPIO_ODR_OD8;              // enter command mode
+
+    // PB9 -> LCD_CS
+    GPIOB->MODER |= GPIO_MODER_MODE9_0;       // set mode to "general purpose output", bit 0 is "1"
+    GPIOB->MODER &= ~GPIO_MODER_MODE9_1;      // set mode to "general purpose output", bit 0 is "0"
+    GPIOB->OTYPER &= ~GPIO_OTYPER_OT9;        // set output type to "push-pull (reset-state)"
+    GPIOB->OSPEEDR |= GPIO_OSPEEDR_OSPEED9_0; // set output speed to high speed, bit 0 is "1"
+    GPIOB->OSPEEDR |= GPIO_OSPEEDR_OSPEED9_1; // set output speed to high speed, bit 1 is "1"
+    GPIOB->ODR |= GPIO_ODR_OD9;               // deselect display
+
+    // PB12 -> LCD_GND
+    GPIOB->MODER |= GPIO_MODER_MODE12_0;        // set mode to "general purpose output", bit 0 is "1"
+    GPIOB->MODER &= ~GPIO_MODER_MODE12_1;       // set mode to "general purpose output", bit 0 is "0"
+    GPIOB->OTYPER &= ~GPIO_OTYPER_OT12;         // set output type to "push-pull (reset-state)"
+    GPIOB->PUPDR &= ~GPIO_PUPDR_PUPD12_0;       // enable pull-down(0b10), bit 0 is "0"
+    GPIOB->PUPDR |= GPIO_PUPDR_PUPD12_1;        // enable pull-down(0b10), bit 1 is "1"
+    GPIOB->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED12_0; // set output speed to slow speed, bit 0 is "0"
+    GPIOB->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED12_1; // set output speed to slow speed, bit 1 is "0"
+    GPIOB->ODR &= ~GPIO_ODR_OD12;               // use pin as ground
+
+    // PB13 -> LCD_VCC
+    GPIOB->MODER |= GPIO_MODER_MODE13_0;        // set mode to "general purpose output", bit 0 is "1"
+    GPIOB->MODER &= ~GPIO_MODER_MODE13_1;       // set mode to "general purpose output", bit 0 is "0"
+    GPIOB->OTYPER &= ~GPIO_OTYPER_OT13;         // set output type to "push-pull (reset-state)"
+    GPIOB->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED13_0; // set output speed to slow speed, bit 0 is "0"
+    GPIOB->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED13_1; // set output speed to slow speed, bit 1 is "0"
+    GPIOB->ODR |= GPIO_ODR_OD13;                // enable VCC to display
+}
+
 void displaySelect()
 {
-    GPIOA->ODR &= ~GPIO_ODR_OD3; // select display
+    GPIOB->ODR &= ~GPIO_ODR_OD9; // select display
 }
 
 void displayDeselect()
 {
-    GPIOA->ODR |= GPIO_ODR_OD3; // deselect display
+    GPIOB->ODR |= GPIO_ODR_OD9; // deselect display
 }
 
 void displayCommandMode()
 {
-    GPIOA->ODR &= ~GPIO_ODR_OD4; // set DC pin low to signal data
+    GPIOB->ODR &= ~GPIO_ODR_OD8; // set DC pin low to signal data
 }
 
 void displayDataMode()
 {
-    GPIOA->ODR |= GPIO_ODR_OD4; // set DC pin high to signal data
+    GPIOB->ODR |= GPIO_ODR_OD8; // set DC pin high to signal data
+}
+
+void displayReset()
+{
+    // send reset sequence
+    GPIOB->ODR &= ~GPIO_ODR_OD7;
+    vTaskDelay(pdMS_TO_TICKS(50));
+    GPIOB->ODR |= GPIO_ODR_OD7;
+    vTaskDelay(pdMS_TO_TICKS(50));
 }
 
 void displaySendCommand(uint8_t data)
@@ -65,51 +128,6 @@ void displaySendData(uint8_t data)
     spiTranferByte(data);
     spiWaitForIdle();
     displayDeselect();
-}
-
-void displayReset()
-{
-    // send reset sequence
-    GPIOA->ODR &= ~GPIO_ODR_OD0;
-    vTaskDelay(pdMS_TO_TICKS(50));
-    GPIOA->ODR |= GPIO_ODR_OD0;
-    vTaskDelay(pdMS_TO_TICKS(50));
-}
-
-void displayPinsInit()
-{
-    RCC->IOPENR |= RCC_IOPENR_GPIOAEN; // enable GPIOA clock
-
-    // PA0 -> LCD_RST
-    GPIOA->MODER |= GPIO_MODER_MODE0_0;       // set mode to "general purpose output", bit 0 is "1"
-    GPIOA->MODER &= ~GPIO_MODER_MODE0_1;      // set mode to "general purpose output", bit 0 is "0"
-    GPIOA->OTYPER &= ~GPIO_OTYPER_OT0;        // set output type to "push-pull (reset-state)"
-    GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEED0_0; // set output speed to high speed, bit 0 is "1"
-    GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEED0_1; // set output speed to high speed, bit 1 is "1"
-
-    // PA3 -> LCD_CS
-    GPIOA->MODER |= GPIO_MODER_MODE3_0;       // set mode to "general purpose output", bit 0 is "1"
-    GPIOA->MODER &= ~GPIO_MODER_MODE3_1;      // set mode to "general purpose output", bit 0 is "0"
-    GPIOA->OTYPER &= ~GPIO_OTYPER_OT3;        // set output type to "push-pull (reset-state)"
-    GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEED3_0; // set output speed to high speed, bit 0 is "1"
-    GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEED3_1; // set output speed to high speed, bit 1 is "1"
-    GPIOA->ODR |= GPIO_ODR_OD3;               // deselect display
-
-    // PA4 -> LCD_DC
-    GPIOA->MODER |= GPIO_MODER_MODE4_0;       // set mode to "general purpose output", bit 0 is "1"
-    GPIOA->MODER &= ~GPIO_MODER_MODE4_1;      // set mode to "general purpose output", bit 0 is "0"
-    GPIOA->OTYPER &= ~GPIO_OTYPER_OT4;        // set output type to "push-pull (reset-state)"
-    GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEED4_0; // set output speed to high speed, bit 0 is "1"
-    GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEED4_1; // set output speed to high speed, bit 1 is "1"
-    GPIOA->ODR &= ~GPIO_ODR_OD4;              // enter command mode
-
-    // PA5 -> LCD_BL
-    GPIOA->MODER |= GPIO_MODER_MODE5_0;       // set mode to "general purpose output", bit 0 is "1"
-    GPIOA->MODER &= ~GPIO_MODER_MODE5_1;      // set mode to "general purpose output", bit 0 is "0"
-    GPIOA->OTYPER &= ~GPIO_OTYPER_OT5;        // set output type to "push-pull (reset-state)"
-    GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEED5_0; // set output speed to high speed, bit 0 is "0"
-    GPIOA->OSPEEDR |= GPIO_OSPEEDR_OSPEED5_1; // set output speed to high speed, bit 1 is "0"
-    GPIOA->ODR |= GPIO_ODR_OD5;               // enable backlight
 }
 
 void displayInit()
