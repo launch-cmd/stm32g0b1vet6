@@ -5,6 +5,7 @@
 #include "log.h"
 #include "board_config.h"
 #include "display.h"
+#include "dht22.h"
 
 static StaticTask_t mainTaskBuffer;
 static StackType_t mainTaskStack[configMINIMAL_STACK_SIZE * 2];
@@ -19,6 +20,7 @@ void mainTask(void *pvParameters)
 
   // start other tasks
   initDisplayTask();
+  initDht22Task();
 
   bool statusLedIsOn = false;
   for (;;)
