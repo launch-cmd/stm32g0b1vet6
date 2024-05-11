@@ -7,7 +7,8 @@
 #define _SQUARELINE_PROJECT_UI_H
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #include "lvgl.h"
@@ -15,20 +16,21 @@ extern "C" {
 #include "ui_helpers.h"
 #include "ui_events.h"
 
-// SCREEN: ui_Screen1
-void ui_Screen1_screen_init(void);
-extern lv_obj_t * ui_Screen1;
-extern lv_obj_t * ui_Spinner1;
-extern lv_obj_t * ui_Label1;
-extern lv_obj_t * ui_Arc1;
-extern lv_obj_t * ui_Switch1;
-extern lv_obj_t * ui____initial_actions0;
+    // SCREEN: ui_Screen1
+    void ui_Screen1_screen_init(void);
+    extern lv_obj_t *ui_Screen1;
+    extern lv_obj_t *ui_tempImage;
+    extern lv_obj_t *ui_rhumImage;
+    extern lv_obj_t *ui_tempLabel;
+    extern lv_obj_t *ui_rhumLabel;
+    extern lv_obj_t *ui____initial_actions0;
 
+    LV_IMG_DECLARE(ui_img_temp_small_png); // assets/temp_small.png
+    LV_IMG_DECLARE(ui_img_rhum_small_png); // assets/rhum_small.png
 
+    LV_FONT_DECLARE(ui_font_Font1);
 
-
-
-void ui_init(void);
+    void ui_init(void);
 
 #ifdef __cplusplus
 } /*extern "C"*/

@@ -11,13 +11,12 @@
 #include "timers.h"
 
 static StaticTask_t displayTaskBuffer;
-static StackType_t displayTaskStack[1000];
+static StackType_t displayTaskStack[700];
+
 const uint32_t horRes = 240;
 const uint32_t vertRes = 135;
-#define DISP_BUF_SIZE (32400) // 240 * 135
-#define PART_BUF_SIZE (3240)  // 240 * 135 / 10
-static lv_color_t dispBuff1[PART_BUF_SIZE];
-static lv_color_t dispBuff2[PART_BUF_SIZE];
+#define DISP_BUF_SIZE (3240) // 240 * 135 / 10
+static lv_color_t dispBuff[DISP_BUF_SIZE];
 static lv_disp_draw_buf_t drawBuff;
 static lv_disp_drv_t dispDriver;
 
@@ -289,7 +288,7 @@ void displayTask()
     displayPinsInit();
     displayInit();
     lv_init();
-    lv_disp_draw_buf_init(&drawBuff, &dispBuff1, &dispBuff2, PART_BUF_SIZE);
+    lv_disp_draw_buf_init(&drawBuff, &dispBuff, NULL, DISP_BUF_SIZE);
 
     lv_disp_drv_init(&dispDriver);
     dispDriver.flush_cb = displayClearLvgl;
@@ -306,13 +305,13 @@ void displayTask()
 
     while (true)
     {
-        lv_timer_handler_run_in_period(10);
-        vTaskDelay(pdMS_TO_TICKS(10));
+        lv_timer_handler_run_in_period(5);
+        vTaskDelay(pdMS_TO_TICKS(5));
     }
 }
 
 void initDisplayTask()
 {
-    xTaskCreateStatic(displayTask, "Disp", 1000,
+    xTaskCreateStatic(displayTask, "Disp", 700,
                       NULL, tskIDLE_PRIORITY + 2, displayTaskStack, &displayTaskBuffer);
 }

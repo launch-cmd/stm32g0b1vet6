@@ -12,10 +12,10 @@
 // SCREEN: ui_Screen1
 void ui_Screen1_screen_init(void);
 lv_obj_t * ui_Screen1;
-lv_obj_t * ui_Spinner1;
-lv_obj_t * ui_Label1;
-lv_obj_t * ui_Arc1;
-lv_obj_t * ui_Switch1;
+lv_obj_t * ui_tempImage;
+lv_obj_t * ui_rhumImage;
+lv_obj_t * ui_tempLabel;
+lv_obj_t * ui_rhumLabel;
 lv_obj_t * ui____initial_actions0;
 
 ///////////////////// TEST LVGL SETTINGS ////////////////////
