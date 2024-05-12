@@ -4,8 +4,7 @@
 #include "board_config.h"
 #include "log.h"
 #include "dht22.h"
-#include "ui.h"
-#include "lvgl.h"
+#include "display.h"
 
 static StaticTask_t dht22TaskBuffer;
 static StackType_t dht22TaskStack[200];
@@ -14,60 +13,6 @@ static uint16_t minTemp = UINT16_MAX;
 static uint16_t maxTemp = 0;
 static uint8_t csum = 0;
 static bool isNegativeTemp = false;
-
-// LVGL STUFF
-static char tempLabelBuffer[32];
-static char rhumLabelBuffer[32];
-static lv_chart_series_t *ui_tempChart_series_1;
-
-static void updateTempScreens()
-{
-    // look through list and get highest and lowest value.
-    // difference between highest value and lowest value should be at least 20.
-    // increase highest value if this is not the case.
-    if (temp > maxTemp)
-    {
-        maxTemp = temp;
-    }
-    else if (temp < minTemp)
-    {
-        minTemp = temp;
-    }
-    uint16_t max;
-    if ((maxTemp - minTemp) < 20)
-    {
-        max = maxTemp + (20 - (maxTemp - minTemp));
-    }
-    else
-    {
-        max = maxTemp;
-    }
-
-    // update chart
-    lv_chart_set_range(ui_tempChart, LV_CHART_AXIS_PRIMARY_Y, minTemp, max);
-    lv_chart_set_next_value(ui_tempChart, ui_tempChart_series_1, temp);
-
-    // create label, show temperature with degrees C symbol and 1 decimal.
-    // show humidity with percent symbol and 1 decimal.
-    snprintf(tempLabelBuffer, sizeof(tempLabelBuffer), "%d.%d C", (temp / 10), (temp % 10));
-    lv_label_set_text_static(ui_tempLabel, tempLabelBuffer);
-    snprintf(rhumLabelBuffer, sizeof(rhumLabelBuffer), "%d.%d %%", (rhum / 10), (rhum % 10));
-    lv_label_set_text_static(ui_rhumLabel, rhumLabelBuffer);
-}
-
-static void drawTempGraph(lv_event_t *e)
-{
-    lv_obj_draw_part_dsc_t *dsc = lv_event_get_draw_part_dsc(e);
-    if (!lv_obj_draw_part_check_type(dsc, &lv_chart_class, LV_CHART_DRAW_PART_TICK_LABEL))
-        return;
-
-    if (dsc->id == LV_CHART_AXIS_PRIMARY_Y && dsc->text)
-    {
-        lv_snprintf(dsc->text, dsc->text_length, "%ld", (dsc->value / 10));
-    }
-}
-
-// END OF LVGL STUFF
 
 static void dht22PinsInit()
 {
@@ -253,38 +198,12 @@ static void dht22Task()
     LOG_INFO("Starting dht22Task.");
 
     dht22PinsInit();
-
-    // graph
-    ui_tempChart_series_1 = lv_chart_add_series(ui_tempChart, lv_color_hex(0xFF4C39),
-                                                LV_CHART_AXIS_PRIMARY_Y);
-    // lv_chart_set_ext_y_array(ui_tempChart, ui_tempChart_series_1, tempArray);
-    lv_obj_add_event_cb(ui_tempChart, drawTempGraph, LV_EVENT_DRAW_PART_BEGIN, NULL);
-
-    uint8_t counter = 6;
     while (true)
     {
         dht22Measure();
-
-        // START OF LVGL STUFF
-        updateTempScreens();
+        updateSummaryScreen(temp, rhum);
+        updateTempChartScreen(temp, &minTemp, &maxTemp);
         vTaskDelay(pdMS_TO_TICKS(2000));
-        counter++;
-        if (counter >= 10)
-        {
-            counter = 0;
-            if (ui_Screen1 == lv_scr_act())
-            {
-                // screen1 was active, switch to screen 2
-                lv_scr_load(ui_Screen2);
-            }
-            else
-            {
-                // screen2 was active, switch to screen 1
-                counter = 6;
-                lv_scr_load(ui_Screen1);
-            }
-        }
-        // END OF LVGL STUFF
     }
 }
 

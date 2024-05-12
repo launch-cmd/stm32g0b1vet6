@@ -11,7 +11,7 @@
 #include "timers.h"
 
 static StaticTask_t displayTaskBuffer;
-static StackType_t displayTaskStack[650];
+static StackType_t displayTaskStack[700];
 
 const uint32_t horRes = 240;
 const uint32_t vertRes = 135;
@@ -20,15 +20,22 @@ static lv_color_t dispBuff[DISP_BUF_SIZE];
 static lv_disp_draw_buf_t drawBuff;
 static lv_disp_drv_t dispDriver;
 
-TimerHandle_t timer;
-StaticTimer_t timerBuff;
+static TimerHandle_t timer;
+static StaticTimer_t timerBuff;
 
-void vTimerCallback(TimerHandle_t xTimer)
+static lv_chart_series_t *tempChartSeries;
+static char tempLabelBuffer[32];
+static char rhumLabelBuffer[32];
+
+static lv_timer_t *switchScreenTimer;
+const static uint16_t SCREEN_SWITCH_PERIOD_MS = 10000;
+
+static void vTimerCallback(TimerHandle_t xTimer)
 {
     lv_tick_inc(1);
 }
 
-void displayPinsInit()
+static void displayPinsInit()
 {
     RCC->IOPENR |= RCC_IOPENR_GPIOBEN; // enable GPIOB clock
 
@@ -82,27 +89,27 @@ void displayPinsInit()
     GPIOB->ODR |= GPIO_ODR_OD13;                // enable VCC to display
 }
 
-void displaySelect()
+static void displaySelect()
 {
     GPIOB->ODR &= ~GPIO_ODR_OD9; // select display
 }
 
-void displayDeselect()
+static void displayDeselect()
 {
     GPIOB->ODR |= GPIO_ODR_OD9; // deselect display
 }
 
-void displayCommandMode()
+static void displayCommandMode()
 {
     GPIOB->ODR &= ~GPIO_ODR_OD8; // set DC pin low to signal data
 }
 
-void displayDataMode()
+static void displayDataMode()
 {
     GPIOB->ODR |= GPIO_ODR_OD8; // set DC pin high to signal data
 }
 
-void displayReset()
+static void displayReset()
 {
     // send reset sequence
     GPIOB->ODR &= ~GPIO_ODR_OD7;
@@ -111,7 +118,7 @@ void displayReset()
     vTaskDelay(pdMS_TO_TICKS(50));
 }
 
-void displaySendCommand(uint8_t data)
+static void displaySendCommand(uint8_t data)
 {
     displaySelect();
     displayCommandMode();
@@ -120,7 +127,7 @@ void displaySendCommand(uint8_t data)
     displayDeselect();
 }
 
-void displaySendData(uint8_t data)
+static void displaySendData(uint8_t data)
 {
     displaySelect();
     displayDataMode();
@@ -129,7 +136,7 @@ void displaySendData(uint8_t data)
     displayDeselect();
 }
 
-void displayInit()
+static void displayInit()
 {
     displayReset();
 
@@ -210,7 +217,7 @@ void displayInit()
     displaySendCommand(0x29); // display on
 }
 
-void displayWriteDataWord(uint16_t data)
+static void displayWriteDataWord(uint16_t data)
 {
     uint8_t lsb = (data >> 8) & 0xFF;
     displaySelect();
@@ -221,7 +228,7 @@ void displayWriteDataWord(uint16_t data)
     displayDeselect();
 }
 
-void displaySetCursor(uint16_t xStart, uint16_t yStart, uint16_t xEnd, uint16_t yEnd)
+static void displaySetCursor(uint16_t xStart, uint16_t yStart, uint16_t xEnd, uint16_t yEnd)
 {
     displaySendCommand(0x2a);
     displayWriteDataWord(xStart + 40);
@@ -232,40 +239,7 @@ void displaySetCursor(uint16_t xStart, uint16_t yStart, uint16_t xEnd, uint16_t 
     displaySendCommand(0x2c);
 }
 
-#define WHITE 0xFFFF
-#define BLACK 0x0000
-#define BLUE 0x001F
-#define BRED 0XF81F
-#define GRED 0XFFE0
-#define GBLUE 0X07FF
-#define RED 0xF800
-#define MAGENTA 0xF81F
-#define GREEN 0x07E0
-#define CYAN 0x7FFF
-#define YELLOW 0xFFE0
-#define BROWN 0XBC40
-#define BRRED 0XFC07
-#define GRAY 0X8430
-#define DARKBLUE 0X01CF
-#define LIGHTBLUE 0X7D7C
-#define GRAYBLUE 0X5458
-#define LIGHTGREEN 0X841F
-#define LGRAY 0XC618
-#define LGRAYBLUE 0XA651
-#define LBBLUE 0X2B12
-void displayClear(uint16_t color)
-{
-    displaySetCursor(0, 0, (horRes - 1), (vertRes - 1));
-    for (uint16_t i = 0; i < horRes; i++)
-    {
-        for (uint16_t j = 0; j < vertRes; j++)
-        {
-            displayWriteDataWord(color);
-        }
-    }
-}
-
-void displayClearLvgl(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
+static void displayClearLvgl(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
 {
     int32_t x, y;
     displaySetCursor(area->x1, area->y1, area->x2, area->y2);
@@ -280,13 +254,110 @@ void displayClearLvgl(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *co
     lv_disp_flush_ready(disp);
 }
 
-void displayTask()
+static void drawTempGraphYLabels(lv_event_t *e)
+{
+    lv_obj_draw_part_dsc_t *dsc = lv_event_get_draw_part_dsc(e);
+    if (!lv_obj_draw_part_check_type(dsc, &lv_chart_class, LV_CHART_DRAW_PART_TICK_LABEL))
+        return;
+
+    if (dsc->id == LV_CHART_AXIS_PRIMARY_Y && dsc->text)
+    {
+        lv_snprintf(dsc->text, dsc->text_length, "%ld", (dsc->value / 10));
+    }
+}
+
+static void displaySetupTempChartScreen()
+{
+    tempChartSeries = lv_chart_add_series(ui_tempChart, lv_color_hex(0xFF4C39),
+                                          LV_CHART_AXIS_PRIMARY_Y);
+    lv_obj_add_event_cb(ui_tempChart, drawTempGraphYLabels, LV_EVENT_DRAW_PART_BEGIN, NULL);
+}
+
+static void displaySummaryScreen()
+{
+    lv_scr_load(ui_Screen1);
+}
+
+static void displayTempChartScreen()
+{
+    lv_scr_load(ui_Screen2);
+}
+
+static void displayOff()
+{
+    displayWriteDataWord(0x28);
+}
+
+static void displayOn()
+{
+    displayWriteDataWord(0x29);
+}
+
+static void displaySwitchScreenCallback(lv_timer_t *timer)
+{
+    // order wraps 'summary' -> 'tempChart' -> 'summary'
+    // handle switching of screens
+    if (lv_scr_act() == ui_Screen1)
+    {
+        displayTempChartScreen();
+    }
+    else if (lv_scr_act() == ui_Screen2)
+    {
+        displaySummaryScreen();
+    }
+}
+
+static void displaySetupScreenSwitches()
+{
+    switchScreenTimer = lv_timer_create(displaySwitchScreenCallback, SCREEN_SWITCH_PERIOD_MS, NULL);
+}
+
+void updateTempChartScreen(uint16_t newVal, uint16_t *minValue, uint16_t *maxValue)
+{
+    // look through list and get highest and lowest value.
+    // difference between highest value and lowest value should be at least 20.
+    // increase highest value if this is not the case.
+    if (newVal > *maxValue)
+    {
+        *maxValue = newVal;
+    }
+    else if (newVal < *minValue)
+    {
+        *minValue = newVal;
+    }
+    uint16_t max;
+    if ((*maxValue - *minValue) < 20)
+    {
+        max = *maxValue + (20 - (*maxValue - *minValue));
+    }
+    else
+    {
+        max = *maxValue;
+    }
+
+    // update chart
+    lv_chart_set_range(ui_tempChart, LV_CHART_AXIS_PRIMARY_Y, *minValue, max);
+    lv_chart_set_next_value(ui_tempChart, tempChartSeries, newVal);
+}
+
+void updateSummaryScreen(uint16_t temp, uint16_t rhum)
+{
+    // create label, show temperature with degrees C symbol and 1 decimal.
+    // show humidity with percent symbol and 1 decimal.
+    snprintf(tempLabelBuffer, sizeof(tempLabelBuffer), "%d.%d C", (temp / 10), (temp % 10));
+    lv_label_set_text_static(ui_tempLabel, tempLabelBuffer);
+    snprintf(rhumLabelBuffer, sizeof(rhumLabelBuffer), "%d.%d %%", (rhum / 10), (rhum % 10));
+    lv_label_set_text_static(ui_rhumLabel, rhumLabelBuffer);
+}
+
+static void displayTask()
 {
     LOG_INFO("Starting displayTask.");
 
     spiInit();
     displayPinsInit();
     displayInit();
+    displayOff();
     lv_init();
     lv_disp_draw_buf_init(&drawBuff, &dispBuff, NULL, DISP_BUF_SIZE);
 
@@ -302,7 +373,10 @@ void displayTask()
     xTimerStart(timer, 0);
 
     ui_init();
-
+    displaySetupTempChartScreen();
+    displaySummaryScreen();
+    displaySetupScreenSwitches();
+    displayOn();
     while (true)
     {
         lv_timer_handler_run_in_period(5);
@@ -312,6 +386,6 @@ void displayTask()
 
 void initDisplayTask()
 {
-    xTaskCreateStatic(displayTask, "Disp", 650,
+    xTaskCreateStatic(displayTask, "Disp", 700,
                       NULL, tskIDLE_PRIORITY + 2, displayTaskStack, &displayTaskBuffer);
 }
