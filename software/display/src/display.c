@@ -25,10 +25,12 @@ static StaticTimer_t timerBuff;
 
 static lv_chart_series_t *tempChartSeries;
 static char tempLabelBuffer[32];
+
+static lv_chart_series_t *rhumChartSeries;
 static char rhumLabelBuffer[32];
 
 static lv_timer_t *switchScreenTimer;
-const static uint16_t SCREEN_SWITCH_PERIOD_MS = 10000;
+const static uint16_t SCREEN_SWITCH_PERIOD_MS = 20000;
 
 static void vTimerCallback(TimerHandle_t xTimer)
 {
@@ -254,7 +256,7 @@ static void displayClearLvgl(lv_disp_drv_t *disp, const lv_area_t *area, lv_colo
     lv_disp_flush_ready(disp);
 }
 
-static void drawTempGraphYLabels(lv_event_t *e)
+static void drawGraphsYLabels(lv_event_t *e)
 {
     lv_obj_draw_part_dsc_t *dsc = lv_event_get_draw_part_dsc(e);
     if (!lv_obj_draw_part_check_type(dsc, &lv_chart_class, LV_CHART_DRAW_PART_TICK_LABEL))
@@ -266,11 +268,14 @@ static void drawTempGraphYLabels(lv_event_t *e)
     }
 }
 
-static void displaySetupTempChartScreen()
+static void displaySetupChartScreens()
 {
     tempChartSeries = lv_chart_add_series(ui_tempChart, lv_color_hex(0xFF4C39),
                                           LV_CHART_AXIS_PRIMARY_Y);
-    lv_obj_add_event_cb(ui_tempChart, drawTempGraphYLabels, LV_EVENT_DRAW_PART_BEGIN, NULL);
+    lv_obj_add_event_cb(ui_tempChart, drawGraphsYLabels, LV_EVENT_DRAW_PART_BEGIN, NULL);
+    rhumChartSeries = lv_chart_add_series(ui_rhumChart1, lv_color_hex(0x0C52D9),
+                                          LV_CHART_AXIS_PRIMARY_Y);
+    lv_obj_add_event_cb(ui_rhumChart1, drawGraphsYLabels, LV_EVENT_DRAW_PART_BEGIN, NULL);
 }
 
 static void displaySummaryScreen()
@@ -281,6 +286,11 @@ static void displaySummaryScreen()
 static void displayTempChartScreen()
 {
     lv_scr_load(ui_Screen2);
+}
+
+static void displayRhumChartScreen()
+{
+    lv_scr_load(ui_Screen3);
 }
 
 static void displayOff()
@@ -295,13 +305,17 @@ static void displayOn()
 
 static void displaySwitchScreenCallback(lv_timer_t *timer)
 {
-    // order wraps 'summary' -> 'tempChart' -> 'summary'
+    // order wraps 'summary' -> 'tempChart' -> 'rhumChart' -> 'summary'
     // handle switching of screens
     if (lv_scr_act() == ui_Screen1)
     {
         displayTempChartScreen();
     }
     else if (lv_scr_act() == ui_Screen2)
+    {
+        displayRhumChartScreen();
+    }
+    else if (lv_scr_act() == ui_Screen3)
     {
         displaySummaryScreen();
     }
@@ -340,6 +354,12 @@ void updateTempChartScreen(uint16_t newVal, uint16_t *minValue, uint16_t *maxVal
     lv_chart_set_next_value(ui_tempChart, tempChartSeries, newVal);
 }
 
+void updateRhumChartScreen(uint16_t newVal)
+{
+    // update chart
+    lv_chart_set_next_value(ui_rhumChart1, rhumChartSeries, newVal);
+}
+
 void updateSummaryScreen(uint16_t temp, uint16_t rhum)
 {
     // create label, show temperature with degrees C symbol and 1 decimal.
@@ -373,7 +393,7 @@ static void displayTask()
     xTimerStart(timer, 0);
 
     ui_init();
-    displaySetupTempChartScreen();
+    displaySetupChartScreens();
     displaySummaryScreen();
     displaySetupScreenSwitches();
     displayOn();

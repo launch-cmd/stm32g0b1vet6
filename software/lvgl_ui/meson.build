@@ -5,6 +5,7 @@ lvgl_ui_src = files(
     'src/images/ui_img_temp_small_png.c',
     'src/screens/ui_Screen1.c',
     'src/screens/ui_Screen2.c',
+    'src/screens/ui_Screen3.c',
     'src/ui.c',
     'src/ui_helpers.c',
 )

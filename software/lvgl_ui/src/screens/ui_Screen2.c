@@ -35,7 +35,7 @@ void ui_Screen2_screen_init(void)
     ui_tempLabel2 = lv_label_create(ui_Screen2);
     lv_obj_set_width(ui_tempLabel2, LV_SIZE_CONTENT);  /// 1
     lv_obj_set_height(ui_tempLabel2, LV_SIZE_CONTENT); /// 1
-    lv_obj_set_x(ui_tempLabel2, 10);
+    lv_obj_set_x(ui_tempLabel2, 0);
     lv_obj_set_y(ui_tempLabel2, -2);
     lv_obj_set_align(ui_tempLabel2, LV_ALIGN_TOP_MID);
     lv_label_set_text(ui_tempLabel2, "Temperatuur");

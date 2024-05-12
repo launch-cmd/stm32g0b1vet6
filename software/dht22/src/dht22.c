@@ -203,6 +203,7 @@ static void dht22Task()
         dht22Measure();
         updateSummaryScreen(temp, rhum);
         updateTempChartScreen(temp, &minTemp, &maxTemp);
+        updateRhumChartScreen(rhum);
         vTaskDelay(pdMS_TO_TICKS(2000));
     }
 }
