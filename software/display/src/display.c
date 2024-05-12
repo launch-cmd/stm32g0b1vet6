@@ -11,7 +11,7 @@
 #include "timers.h"
 
 static StaticTask_t displayTaskBuffer;
-static StackType_t displayTaskStack[700];
+static StackType_t displayTaskStack[650];
 
 const uint32_t horRes = 240;
 const uint32_t vertRes = 135;
@@ -312,6 +312,6 @@ void displayTask()
 
 void initDisplayTask()
 {
-    xTaskCreateStatic(displayTask, "Disp", 700,
+    xTaskCreateStatic(displayTask, "Disp", 650,
                       NULL, tskIDLE_PRIORITY + 2, displayTaskStack, &displayTaskBuffer);
 }
