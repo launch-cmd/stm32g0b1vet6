@@ -24,15 +24,20 @@ void uartInit()
   GPIOF->AFR[0] |= GPIO_AFRL_AFSEL4;         // set alternative function low register for gpio4
 
   // setup LPUART1
-  // SET LPUART1SEL to 0b0 for PCLK clock source
+  // SET LPUART1SEL to 0b1 for SYSCLK clock source
   RCC->CCIPR &= ~RCC_CCIPR_LPUART1SEL_0;
-  RCC->CCIPR &= ~RCC_CCIPR_LPUART1SEL_1;
+  RCC->CCIPR |= RCC_CCIPR_LPUART1SEL_1;
   RCC->APBENR1 |= RCC_APBENR1_LPUART1EN; // enable LPUART1 clock
   LPUART1->CR1 &= ~USART_CR1_UE;         // disable LPUART1 to be able to change settings
   // SET USART_CR1_M to ‘0b00’: 1 Start bit, 8 Data bits, n Stop bit
   LPUART1->CR1 &= ~USART_CR1_M0;
   LPUART1->CR1 &= ~USART_CR1_M1;
-  LPUART1->BRR = 35556;             // set baud rate to 115200
+
+  // 16MHz system clock
+  // 115200 = ((256 * lpuartckpres) / brrValue)
+  // 115200 = ((256 * 16000000) / x)
+  // x = (320000 / 9) -> x = 35555,55
+  LPUART1->BRR = 35555;             // set baud rate to 115200
   LPUART1->CR1 |= USART_CR1_FIFOEN; // enable fifo
   // SET USART_CR3_TXFTCFG to '0b011' to reach 3/4 depth before sending data
   LPUART1->CR3 |= USART_CR3_TXFTCFG_0;
